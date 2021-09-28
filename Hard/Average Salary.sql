@@ -63,3 +63,59 @@ else "lower"
 end as comparison
 from t1
 order by 1 desc
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE salary (
+      `id` INTEGER,
+      `employee_id` INTEGER,
+      `amount` INTEGER,
+      `pay_date` DATE
+    );
+    
+    INSERT INTO salary
+      (`id`, `employee_id`, `amount`, `pay_date`)
+    VALUES
+      ('1', '1', '9000', '2017-03-31'),
+      ('2', '2', '6000', '2017-03-31'),
+      ('3', '3', '10000', '2017-03-31'),
+      ('4', '1', '7000', '2017-02-28'),
+      ('5', '2', '6000', '2017-02-28'),
+      ('6', '3', '8000', '2017-02-28');
+    
+    CREATE TABLE employee (
+      `employee_id` INTEGER,
+      `department_id` INTEGER
+    );
+    
+    INSERT INTO employee
+      (`employee_id`, `department_id`)
+    VALUES
+      ('1', '1'),
+      ('2', '2'),
+      ('3', '2');
+
+---
+
+**Query #1**
+
+    select distinct DATE_FORMAT(pay_date, "%Y-%m") as pay_month, department_id, (case when dept_avg_sal > company_avg_sal then "higher"
+																						when  dept_avg_sal < company_avg_sal then "lower"
+																						else "same" end) as comparison 
+	from
+    (select s.id, s.employee_id, s.amount, s.pay_date, e.department_id,
+    avg(amount) over (partition by month(pay_date)) as company_avg_sal, 
+    avg(s.amount) over(partition by month(pay_date), e.department_id) as dept_avg_sal  
+    from salary s left join employee e on s.employee_id = e.employee_id) d;
+
+| pay_month | comparison | department_id |
+| --------- | ---------- | ------------- |
+| 2017-02   | same       | 1             |
+| 2017-02   | same       | 2             |
+| 2017-03   | higher     | 1             |
+| 2017-03   | lower      | 2             |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/wN4qThJpnbeaai5Xv2GJyg/1)

@@ -59,3 +59,46 @@ from t1
 where rnk = 1
 group by 1
 order by 1
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Activity (
+      `player_id` INTEGER,
+      `device_id` INTEGER,
+      `event_date` DATE,
+      `games_played` INTEGER
+    );
+    
+    INSERT INTO Activity
+      (`player_id`, `device_id`, `event_date`, `games_played`)
+    VALUES
+      ('1', '2', '2016-03-01', '5'),
+      ('1', '2', '2016-03-02', '6'),
+      ('2', '3', '2017-06-25', '1'),
+      ('3', '1', '2016-03-01', '0'),
+      ('3', '4', '2016-07-03', '5');
+
+---
+
+**Query #1**
+
+    with cte as 
+    (select *, count(device_id) over(partition by event_date) as installs, 
+				min(event_date) over(partition by player_id) as install_dt , 
+				(case when min(event_date) over(partition by player_id) + 1 = event_date then 1 else NULL end) as log_day_after
+    from Activity)
+    
+    select distinct c1.install_dt, installs, round((cnt/installs), 2) as Day1_retention from
+    (select install_dt, count(log_day_after) as cnt
+    from cte 
+    group by install_dt)  c1 left join cte c2 on c1.install_dt = c2.event_date;
+
+| install_dt | installs | Day1_retention |
+| ---------- | -------- | -------------- |
+| 2016-03-01 | 2        | 0.50           |
+| 2017-06-25 | 1        | 0.00           |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/8v17kcfkxnyQdSwF4DhVvu/1)

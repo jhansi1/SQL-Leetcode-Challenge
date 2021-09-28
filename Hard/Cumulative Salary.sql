@@ -62,3 +62,46 @@ from t1
 where month<recent_month
 order by 1, 2 desc
 
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE employee (
+      `Id` INTEGER,
+      `Month` INTEGER,
+      `Salary` INTEGER
+    );
+    
+    INSERT INTO employee
+      (`Id`, `Month`, `Salary`)
+    VALUES
+      ('1', '1', '20'),
+      ('2', '1', '20'),
+      ('1', '2', '30'),
+      ('2', '2', '30'),
+      ('3', '2', '40'),
+      ('1', '3', '40'),
+      ('3', '3', '60'),
+      ('1', '4', '60'),
+      ('3', '4', '70');
+
+---
+
+**Query #1**
+
+    select d.Id, d.Month, sum(salary) over(partition by Id order by month) as Salary from (
+    select *, row_number() over(partition by Id order by Month desc) as r_num from employee) d
+    where r_num != 1
+    order by 1, 2 desc;
+
+| Id  | Month | Salary |
+| --- | ----- | ------ |
+| 1   | 3     | 90     |
+| 1   | 2     | 50     |
+| 1   | 1     | 20     |
+| 2   | 1     | 20     |
+| 3   | 3     | 100    |
+| 3   | 2     | 40     |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/tnk7UUCCiqQVrgjUMTsXe2/1)

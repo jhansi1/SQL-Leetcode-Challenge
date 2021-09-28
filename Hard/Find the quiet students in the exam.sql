@@ -91,3 +91,74 @@ from exam join student
 using (student_id)
 where student_id != all(select student_id from t1)
 order by 1
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Student (
+      `student_id` INTEGER,
+      `student_name` VARCHAR(8)
+    );
+    
+    INSERT INTO Student
+      (`student_id`, `student_name`)
+    VALUES
+      ('1', 'Daniel'),
+      ('2', 'Jade'),
+      ('3', 'Stella'),
+      ('4', 'Jonathan'),
+      ('5', 'Will');
+    
+    CREATE TABLE Exam (
+      `exam_id` INTEGER,
+      `student_id` INTEGER,
+      `score` INTEGER
+    );
+    
+    INSERT INTO Exam
+      (`exam_id`, `student_id`, `score`)
+    VALUES
+      ('10', '1', '70'),
+      ('10', '2', '80'),
+      ('10', '3', '90'),
+      ('20', '1', '80'),
+      ('30', '1', '70'),
+      ('30', '3', '80'),
+      ('30', '4', '90'),
+      ('40', '1', '60'),
+      ('40', '2', '70'),
+      ('40', '4', '80');
+
+---
+# with cte1 as
+# (select student_id, student_name,(case when score != min_score and score != max_score then 1
+# else 0 end) as isQuiet from
+# (select e.student_id, e.exam_id, e.score, s.student_name, max(score) over(partition by e.exam_id) max_score, min(score) over(partition by e.exam_id) min_score
+# from Exam e left join Student s on e.student_id = s.student_id) d),
+# cte2 as (select student_id, count(distinct exam_id) as cnt from Exam group by student_id)
+
+# select * from Student where student_id in (
+# select a.student_id from (
+# select cte1.student_id, sum(isQuiet) as quiet_cnt from cte1
+# group by student_id) a left join cte2 on a.student_id = cte2.student_id  
+# where quiet_cnt = cnt);
+
+
+**Query #1**
+
+    with cte as 
+    (select distinct student_id from (
+    select e.student_id, e.exam_id, e.score, s.student_name, max(score) over(partition by e.exam_id) max_score, min(score) over(partition by e.exam_id) min_score
+    from Exam e left join Student s on e.student_id = s.student_id) d
+    where score = min_score or score = max_score)
+    
+    select distinct e.student_id, s.student_name from Exam e left join Student s on e.student_id = s.student_id where e.student_id not in (select if(student_id, student_id, 0) from cte)
+    order by 1;
+
+| student_id | student_name |
+| ---------- | ------------ |
+| 2          | Jade         |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/bg5PfTBN4nGEeV7tgvsmzm/1)

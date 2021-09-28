@@ -27,3 +27,40 @@ from numbers)
 select avg(number) as median
 from t1
 where middle between (cum_sum - frequency) and cum_sum
+
+-- Code:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE numbers (
+      `Number` INTEGER,
+      `Frequency` INTEGER
+    );
+    
+    INSERT INTO numbers
+      (`Number`, `Frequency`)
+    VALUES
+      ('0', '7'),
+      ('1', '1'),
+      ('2', '3'),
+      ('3', '1');
+
+---
+
+**Query #1**
+
+    with t1 as(
+    select *,
+    sum(frequency) over(order by number) as cumm_sum, round((sum(frequency) over())/2) as mid_pos
+    from numbers)
+    
+    select avg(number) as median
+    from t1
+    where mid_pos between (cumm_sum - frequency) and cumm_sum;
+
+| median |
+| ------ |
+| 0.0000 |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/xeMGJdTqiPwxqkqenveZXC/1)

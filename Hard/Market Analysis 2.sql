@@ -103,3 +103,76 @@ where a.rk = 2)
 select u.user_id as seller_id, coalesce(2nd_item_fav_brand,"no") as 2nd_item_fav_brand
 from users u left join t1
 using(user_id)
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Users (
+      `user_id` INTEGER,
+      `join_date` DATE,
+      `favorite_brand` VARCHAR(7)
+    );
+    
+    INSERT INTO Users
+      (`user_id`, `join_date`, `favorite_brand`)
+    VALUES
+      ('1', '2019-01-01', 'Lenovo'),
+      ('2', '2019-02-09', 'Samsung'),
+      ('3', '2019-01-19', 'LG'),
+      ('4', '2019-05-21', 'HP');
+    
+    CREATE TABLE Orders (
+      `order_id` INTEGER,
+      `order_date` DATE,
+      `item_id` INTEGER,
+      `buyer_id` INTEGER,
+      `seller_id` INTEGER
+    );
+    
+    INSERT INTO Orders
+      (`order_id`, `order_date`, `item_id`, `buyer_id`, `seller_id`)
+    VALUES
+      ('1', '2019-08-01', '4', '1', '2'),
+      ('2', '2019-08-02', '2', '1', '3'),
+      ('3', '2019-08-03', '3', '2', '3'),
+      ('4', '2019-08-04', '1', '4', '2'),
+      ('5', '2019-08-04', '1', '3', '4'),
+      ('6', '2019-08-05', '2', '2', '4');
+    
+    CREATE TABLE Items (
+      `item_id` INTEGER,
+      `item_brand` VARCHAR(7)
+    );
+    
+    INSERT INTO Items
+      (`item_id`, `item_brand`)
+    VALUES
+      ('1', 'Samsung'),
+      ('2', 'Lenovo'),
+      ('3', 'LG'),
+      ('4', 'HP');
+
+---
+
+**Query #1**
+
+    with cte as 
+    (select * from 
+      (select item_id, seller_id, row_number() over(partition by seller_id order by order_date) as rn
+    from Orders) d
+     where rn = 2
+    )
+    
+    select u.user_id as seller_id, (case when item_brand = favorite_brand then "yes" else "no" end ) as 2nd_item_fav_brand from cte c left join Items i on c.item_id = i.item_id
+    right join Users u on c.seller_id = u.user_id;
+
+| seller_id | 2nd_item_fav_brand |
+| --------- | ------------------ |
+| 1         | no                 |
+| 2         | yes                |
+| 3         | yes                |
+| 4         | no                 |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/hoHRuBWjwAeow8PM2ArLcD/2)
