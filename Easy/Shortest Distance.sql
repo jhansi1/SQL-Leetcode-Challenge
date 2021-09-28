@@ -28,3 +28,32 @@ from(
 select *,
 lead(x) over(order by x) as next_closest
 from point) a 
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Point (
+      `x` INTEGER
+    );
+    
+    INSERT INTO Point
+      (`x`)
+    VALUES
+      (-1),
+      (0),
+      (2);
+
+---
+
+**Query #1**
+
+    select min(abs(abs(x) - abs(next_point))) as shortest_distance from (
+    select x, lead(x) over() as next_point from Point) s;
+
+| shortest_distance |
+| ----------------- |
+| 1                 |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/vPcqpc4keukMTjAjekyjhG/1)

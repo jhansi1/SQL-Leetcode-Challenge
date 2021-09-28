@@ -85,3 +85,61 @@ on o.product_id = p.product_id
 where month(order_date)=2 and year(order_date) = 2020
 group by o.product_id) a
 where a.unit>=100
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Products (
+      `product_id` INTEGER,
+      `product_name` VARCHAR(21),
+      `product_category` VARCHAR(7)
+    );
+    
+    INSERT INTO Products
+      (`product_id`, `product_name`, `product_category`)
+    VALUES
+      ('1', 'Leetcode Solutions', 'Book'),
+      ('2', 'Jewels of Stringology', 'Book'),
+      ('3', 'HP', 'Laptop'),
+      ('4', 'Lenovo', 'Laptop'),
+      ('5', 'Leetcode Kit', 'T-shirt');
+    
+    CREATE TABLE Orders (
+      `product_id` INTEGER,
+      `order_date` DATETIME,
+      `unit` INTEGER
+    );
+    
+    INSERT INTO Orders
+      (`product_id`, `order_date`, `unit`)
+    VALUES
+      ('1', '2020-02-05', '60'),
+      ('1', '2020-02-10', '70'),
+      ('2', '2020-01-18', '30'),
+      ('2', '2020-02-11', '80'),
+      ('3', '2020-02-17', '2'),
+      ('3', '2020-02-24', '3'),
+      ('4', '2020-03-01', '20'),
+      ('4', '2020-03-04', '30'),
+      ('4', '2020-03-04', '60'),
+      ('5', '2020-02-25', '50'),
+      ('5', '2020-02-27', '50'),
+      ('5', '2020-03-01', '50');
+
+---
+
+**Query #1**
+
+    select p.product_name, sum(o.unit) as unit from Products p left join Orders o on p.product_id = o.product_id
+    where month(order_date) = 2 and year(order_date) = 2020
+    group by 1
+    having sum(o.unit) >= 100;
+
+| product_name       | unit |
+| ------------------ | ---- |
+| Leetcode Solutions | 130  |
+| Leetcode Kit       | 100  |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/uHwyqFx2nRPCGyAvAMDN9m/2)

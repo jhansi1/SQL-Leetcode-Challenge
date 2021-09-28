@@ -48,3 +48,45 @@ With t1 as
 Select t1.customer_number
 from t1
 where t1.rk=1
+
+-- My solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE orders (
+      `order_number` INTEGER,
+      `customer_number` INTEGER,
+      `order_date` DATETIME,
+      `required_date` DATETIME,
+      `shipped_date` DATETIME,
+      `status` VARCHAR(6),
+      `comment` VARCHAR(60)
+    );
+    
+    INSERT INTO orders
+      (`order_number`, `customer_number`, `order_date`, `required_date`, `shipped_date`, `status`, `comment`)
+    VALUES
+      ('1', '1', '2017-04-09', '2017-04-13', '2017-04-12', 'Closed', ''),
+      ('2', '2', '2017-04-15', '2017-04-20', '2017-04-18', 'Closed', ''),
+      ('3', '3', '2017-04-16', '2017-04-25', '2017-04-20', 'Closed', ''),
+      ('4', '3', '2017-04-18', '2017-04-28', '2017-04-25', 'Closed', '');
+
+---
+
+**Query #1**
+
+    With cte as
+    (select customer_number, Rank() over(order by count(customer_number) desc) as rk
+    from orders
+    group by customer_number
+    )
+    
+    select cte.customer_number from cte
+    where cte.rk = 1;
+
+| customer_number |
+| --------------- |
+| 3               |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/rte86hLWnoKC3WFqxJb6h3/1)

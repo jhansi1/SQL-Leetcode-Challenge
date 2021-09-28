@@ -49,3 +49,42 @@ select sell_date, count(distinct product) as num_sold, group_concat(distinct pro
 from activities
 group by 1
 order by 1
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Activities (
+      `sell_date` DATETIME,
+      `product` VARCHAR(10)
+    );
+    
+    INSERT INTO Activities
+      (`sell_date`, `product`)
+    VALUES
+      ('2020-05-30', 'Headphone'),
+      ('2020-06-01', 'Pencil'),
+      ('2020-06-02', 'Mask'),
+      ('2020-05-30', 'Basketball'),
+      ('2020-06-01', 'Bible'),
+      ('2020-06-02', 'Mask'),
+      ('2020-05-30', 'T-Shirt');
+
+---
+
+**Query #1**
+
+    select sell_date, count(distinct product) as num_sold, 
+    group_concat(distinct product) as products
+    from Activities
+    group by sell_date
+    order by sell_date;
+
+| sell_date           | num_sold | products                     |
+| ------------------- | -------- | ---------------------------- |
+| 2020-05-30 00:00:00 | 3        | Basketball,Headphone,T-Shirt |
+| 2020-06-01 00:00:00 | 2        | Bible,Pencil                 |
+| 2020-06-02 00:00:00 | 1        | Mask                         |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/23tGveXeM3MoJGE7FjvKvR/2)

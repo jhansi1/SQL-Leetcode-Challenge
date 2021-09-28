@@ -55,3 +55,52 @@
  union
 (Select '15 or more' as bin, 
  sum(case when duration/60 >= 15 then 1 else 0 end) as total from Sessions)
+ 
+ 
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Sessions (
+      `session_id` INTEGER,
+      `duration` INTEGER
+    );
+    
+    INSERT INTO Sessions
+      (`session_id`, `duration`)
+    VALUES
+      ('1', '30'),
+      ('2', '199'),
+      ('3', '299'),
+      ('4', '580'),
+      ('5', '1000');
+
+---
+
+**Query #1**
+
+    select "[0-5>" as bin , sum(case when (duration / 60) >= 0 and (duration / 60) <5 then 1 else 0 end) as total
+    from Sessions
+    union
+    
+    select "[5-10>" as bin, sum(case when (duration / 60) >= 5 and (duration / 60) <10 then 1 else 0 end)
+    from Sessions
+    union
+    
+    select "[10-15>" as bin, sum(case when (duration / 60) >= 10 and (duration / 60) <15 then 1 else 0 end)
+    from Sessions
+    union
+    
+    select "15 minutes or more" as bin, sum(case when (duration / 60) >= 15 then 1 else 0 end)
+    from Sessions;
+
+| bin                | total |
+| ------------------ | ----- |
+| [0-5>              | 3     |
+| [5-10>             | 1     |
+| [10-15>            | 0     |
+| 15 minutes or more | 1     |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/g3qn2Lkt2zVNCfuhUAC5iD/2)
+ 

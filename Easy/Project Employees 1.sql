@@ -62,3 +62,51 @@ join
 employee as b
 on a.employee_id=b.employee_id
 group by a.project_id
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Project (
+      `project_id` INTEGER,
+      `employee_id` INTEGER
+    );
+    
+    INSERT INTO Project
+      (`project_id`, `employee_id`)
+    VALUES
+      ('1', '1'),
+      ('1', '2'),
+      ('1', '3'),
+      ('2', '1'),
+      ('2', '4');
+    
+    CREATE TABLE Employee (
+      `employee_id` INTEGER,
+      `name` VARCHAR(6),
+      `experience_years` INTEGER
+    );
+    
+    INSERT INTO Employee
+      (`employee_id`, `name`, `experience_years`)
+    VALUES
+      ('1', 'Khaled', '3'),
+      ('2', 'Ali', '2'),
+      ('3', 'John', '1'),
+      ('4', 'Doe', '2');
+
+---
+
+**Query #1**
+
+    select p.project_id, round(avg(e.experience_years), 2) as average_years
+    from Project p left join Employee e on p.employee_id = e.employee_id
+    group by p.project_id;
+
+| project_id | average_years |
+| ---------- | ------------- |
+| 1          | 2.00          |
+| 2          | 2.50          |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/eqarsWMnqAMVa2ofEFNLfe/2)

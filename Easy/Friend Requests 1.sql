@@ -58,3 +58,57 @@ ifnull((
         select distinct
         round((select count(*) from t2) / ( select count(*) from t1),2) from t1,t2
     ),0) 'accept_rate'
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE friend_request (
+      `sender_id` INTEGER,
+      `send_to_id` INTEGER,
+      `request_date` VARCHAR(10)
+    );
+    
+    INSERT INTO friend_request
+      (`sender_id`, `send_to_id`, `request_date`)
+    VALUES
+      ('1', '2', '2016_06-01'),
+      ('1', '3', '2016_06-01'),
+      ('1', '4', '2016_06-01'),
+      ('2', '3', '2016_06-02'),
+      ('3', '4', '2016-06-09');
+    
+    CREATE TABLE request_accepted (
+      `requester_id` INTEGER,
+      `accepter_id` INTEGER,
+      `accept_date` VARCHAR(10)
+    );
+    
+    INSERT INTO request_accepted
+      (`requester_id`, `accepter_id`, `accept_date`)
+    VALUES
+      ('1', '2', '2016_06-03'),
+      ('1', '3', '2016-06-08'),
+      ('2', '3', '2016-06-08'),
+      ('3', '4', '2016-06-09'),
+      ('3', '4', '2016-06-10');
+
+---
+
+**Query #1**
+
+    With 
+    t1 as 
+    (select distinct sender_id, send_to_id from friend_request),
+    t2 as
+    (select distinct requester_id, accepter_id from request_accepted)
+    
+    select 
+    ifnull(round((select count(1) from t2 )/ (select count(1) from t1), 2), 0) as accept_rate from dual;
+
+| accept_rate |
+| ----------- |
+| 0.80        |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/ejuqhHnsP9NFbi64nR9Yw9/1)

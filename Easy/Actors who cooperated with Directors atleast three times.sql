@@ -36,8 +36,48 @@
 -- +-------------+-------------+
 -- The only pair is (1, 1) where they cooperated exactly 3 times.
 
+
 -- Solution 
 Select actor_id, director_id
 from actordirector
 group by actor_id, director_id
 having count(*)>=3
+
+
+
+
+--My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE ActorDirector (
+      `actor_id` INTEGER,
+      `director_id` INTEGER,
+      `timestamp` INTEGER
+    );
+    
+    INSERT INTO ActorDirector
+      (`actor_id`, `director_id`, `timestamp`)
+    VALUES
+      ('1', '1', '0'),
+      ('1', '1', '1'),
+      ('1', '1', '2'),
+      ('1', '2', '3'),
+      ('1', '2', '4'),
+      ('2', '1', '5'),
+      ('2', '1', '6');
+
+---
+
+**Query #1**
+
+    SELECT actor_id, director_id, count(1) FROM ActorDirector
+    group by actor_id, director_id
+    having count(1) >= 3;
+
+| actor_id | director_id | count(1) |
+| -------- | ----------- | -------- |
+| 1        | 1           | 3        |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/oMDnFch8BXL45r3dUVF17V/17)

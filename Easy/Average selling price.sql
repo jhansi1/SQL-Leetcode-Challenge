@@ -73,3 +73,58 @@ natural join
 unitssold u
 where u.purchase_date between p.start_date and p.end_date) d
 group by d.product_id 
+
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Prices (
+      `product_id` INTEGER,
+      `start_date` DATETIME,
+      `end_date` DATETIME,
+      `price` INTEGER
+    );
+    
+    INSERT INTO Prices
+      (`product_id`, `start_date`, `end_date`, `price`)
+    VALUES
+      ('1', '2019-02-17', '2019-02-28', '5'),
+      ('1', '2019-03-01', '2019-03-22', '20'),
+      ('2', '2019-02-01', '2019-02-20', '15'),
+      ('2', '2019-02-21', '2019-03-31', '30');
+    
+    CREATE TABLE UnitsSold (
+      `product_id` INTEGER,
+      `purchase_date` DATETIME,
+      `units` INTEGER
+    );
+    
+    INSERT INTO UnitsSold
+      (`product_id`, `purchase_date`, `units`)
+    VALUES
+      ('1', '2019-02-25', '100'),
+      ('1', '2019-03-01', '15'),
+      ('2', '2019-02-10', '200'),
+      ('2', '2019-03-22', '30');
+
+---
+
+**Query #1**
+
+select s.product_id,
+	round(sum(s.price_of_products)/ sum(s.number_of_products_sold), 2) as average_price
+from (
+select p.product_id as product_id, (p.price * u.units) as price_of_products, u.units as number_of_products_sold
+      from Prices p inner join UnitsSold u on p.product_id = u.product_id
+where u.purchase_date between p.start_date and p.end_date
+) s
+ group by s.product_id;   
+
+| product_id | average_price |
+| ---------- | ------------- |
+| 1          | 6.96          |
+| 2          | 16.96         |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/un1LYJche6VFe3dEUTGyXi/1)

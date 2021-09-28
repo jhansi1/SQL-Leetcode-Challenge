@@ -60,3 +60,42 @@ Select query_name, round(sum(rating/position)/count(*),2) as quality,
 round(avg(case when rating<3 then 1 else 0 end)*100,2) as poor_query_percentage
 from queries
 group by query_name
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Queries (
+      `query_name` VARCHAR(3),
+      `result` VARCHAR(16),
+      `position` INTEGER,
+      `rating` INTEGER
+    );
+    
+    INSERT INTO Queries
+      (`query_name`, `result`, `position`, `rating`)
+    VALUES
+      ('Dog', 'Golden Retriever', '1', '5'),
+      ('Dog', 'German Shepherd', '2', '5'),
+      ('Dog', 'Mule', '200', '1'),
+      ('Cat', 'Shirazi', '5', '2'),
+      ('Cat', 'Siamese', '3', '3'),
+      ('Cat', 'Sphynx', '7', '4');
+
+---
+
+**Query #1**
+
+    select query_name, 
+    round(avg(rating / position), 2) as quality,
+    round(avg(case when rating < 3 then rating else 0 end) * 100, 2) as poor_query_percentage
+    from Queries
+    group by query_name;
+
+| query_name | quality | poor_query_percentage |
+| ---------- | ------- | --------------------- |
+| Dog        | 2.50    | 33.33                 |
+| Cat        | 0.66    | 66.67                 |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/aDgGrmoL4wkURstk5XcFT1/1)

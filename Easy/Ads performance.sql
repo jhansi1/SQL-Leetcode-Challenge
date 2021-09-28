@@ -77,3 +77,75 @@ select *
 from t1 join t2
 on t1.ad_id = t2.ad) a
 order by ctr desc, ad_id
+
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Ads (
+      `ad_id` INTEGER,
+      `user_id` INTEGER,
+      `action` VARCHAR(7)
+    );
+    
+    INSERT INTO Ads
+      (`ad_id`, `user_id`, `action`)
+    VALUES
+      ('1', '1', 'Clicked'),
+      ('2', '2', 'Clicked'),
+      ('3', '3', 'Viewed'),
+      ('5', '5', 'Ignored'),
+      ('1', '7', 'Ignored'),
+      ('2', '7', 'Viewed'),
+      ('3', '5', 'Clicked'),
+      ('1', '4', 'Viewed'),
+      ('2', '11', 'Viewed'),
+      ('1', '2', 'Clicked');
+
+---
+
+**Query #1**
+
+    select t1.ad_id, round(ifnull((clicked / (clicked + viewed) * 100), 0), 2) as ctr from 
+    
+    (select ad_id, sum(case when action='Clicked' then 1 else 0 end) as clicked
+    from Ads 
+    group by ad_id) t1
+    join
+    (select ad_id, sum(case when action='Viewed' then 1 else 0 end) as viewed
+    from Ads 
+    group by ad_id) t2
+    on t1.ad_id = t2.ad_id
+    order by  ctr desc, ad_id;
+
+| ad_id | ctr   |
+| ----- | ----- |
+| 1     | 66.67 |
+| 3     | 50.00 |
+| 2     | 33.33 |
+| 5     | 0.00  |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/oMDnFch8BXL45r3dUVF17V/18)
+
+
+
+
+--Reference: WITH RECURSIVE example:
+WITH RECURSIVE   
+odd_num_cte (id, n) AS  
+(  
+SELECT 1, 1   
+union all  
+SELECT id+1, n+2 from odd_num_cte where id < 5   
+)  
+SELECT * FROM odd_num_cte;  
+
+
+-- Benefits of using CTE
+It provides better readability of the query.
+It increases the performance of the query.
+The CTE allows us to use it as an alternative to the VIEW concept
+It can also be used as chaining of CTE for simplifying the query.
+It can also be used to implement recursive queries easily.

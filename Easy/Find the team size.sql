@@ -50,3 +50,41 @@ Select team_id, count(team_id) as team_size
 from employee
 group by team_id) b
 on e.team_id = b.team_id
+
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Employee (
+      `employee_id` INTEGER,
+      `team_id` INTEGER
+    );
+    
+    INSERT INTO Employee
+      (`employee_id`, `team_id`)
+    VALUES
+      ('1', '8'),
+      ('2', '8'),
+      ('3', '8'),
+      ('4', '7'),
+      ('5', '9'),
+      ('6', '9');
+
+---
+
+**Query #1**
+
+    select employee_id, (select count(1) from Employee e2 where  e2.team_id = e1.team_id) as team_size  from Employee e1;
+
+| employee_id | team_size |
+| ----------- | --------- |
+| 1           | 3         |
+| 2           | 3         |
+| 3           | 3         |
+| 4           | 1         |
+| 5           | 2         |
+| 6           | 2         |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/aG4ieEj4GKRxdEWRzjLE3W/1)

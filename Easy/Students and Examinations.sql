@@ -111,3 +111,79 @@ on e.student_id = s.student_id
 group by e.student_id, student_name, subject_name) b
 on a.student_id = b.student_id and a.subject_name =b.subject_name
 order by a.student_id asc, a.subject_name asc
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Students (
+      `student_id` INTEGER,
+      `student_name` VARCHAR(5)
+    );
+    
+    INSERT INTO Students
+      (`student_id`, `student_name`)
+    VALUES
+      ('1', 'Alice'),
+      ('2', 'Bob'),
+      ('13', 'John'),
+      ('6', 'Alex');
+    
+    CREATE TABLE Subjects (
+      `subject_name` VARCHAR(11)
+    );
+    
+    INSERT INTO Subjects
+      (`subject_name`)
+    VALUES
+      ('Math'),
+      ('Physics'),
+      ('Programming');
+    
+    CREATE TABLE Examinations (
+      `student_id` INTEGER,
+      `subject_name` VARCHAR(11)
+    );
+    
+    INSERT INTO Examinations
+      (`student_id`, `subject_name`)
+    VALUES
+      ('1', 'Math'),
+      ('1', 'Physics'),
+      ('1', 'Programming'),
+      ('2', 'Programming'),
+      ('1', 'Physics'),
+      ('1', 'Math'),
+      ('13', 'Math'),
+      ('13', 'Programming'),
+      ('13', 'Physics'),
+      ('2', 'Math'),
+      ('1', 'Math');
+
+---
+
+**Query #1**
+
+    select q.*, (select count(1) from Examinations e where e.student_id = q.student_id and e.subject_name = q.subject_name ) as attended_exams
+    from
+    (select * from 
+    Students, Subjects) q
+    order by 1;
+
+| student_id | student_name | subject_name | attended_exams |
+| ---------- | ------------ | ------------ | -------------- |
+| 1          | Alice        | Math         | 3              |
+| 1          | Alice        | Physics      | 2              |
+| 1          | Alice        | Programming  | 1              |
+| 2          | Bob          | Math         | 1              |
+| 2          | Bob          | Physics      | 0              |
+| 2          | Bob          | Programming  | 1              |
+| 6          | Alex         | Math         | 0              |
+| 6          | Alex         | Physics      | 0              |
+| 6          | Alex         | Programming  | 0              |
+| 13         | John         | Math         | 1              |
+| 13         | John         | Physics      | 1              |
+| 13         | John         | Programming  | 1              |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/tkbSunA5KKV3P1TwxCT9LU/2)

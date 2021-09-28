@@ -72,3 +72,51 @@ left join
 employeeuni u
 on e.id = u.id
 order by e.id
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Employees (
+      `id` INTEGER,
+      `name` VARCHAR(8)
+    );
+    
+    INSERT INTO Employees
+      (`id`, `name`)
+    VALUES
+      ('1', 'Alice'),
+      ('7', 'Bob'),
+      ('11', 'Meir'),
+      ('90', 'Winston'),
+      ('3', 'Jonathan');
+    
+    CREATE TABLE EmployeeUNI (
+      `id` INTEGER,
+      `unique_id` INTEGER
+    );
+    
+    INSERT INTO EmployeeUNI
+      (`id`, `unique_id`)
+    VALUES
+      ('3', '1'),
+      ('11', '2'),
+      ('90', '3');
+
+---
+
+**Query #1**
+
+    select unique_id, name
+    from Employees e left join EmployeeUNI u on e.id = u.id;
+
+| unique_id | name     |
+| --------- | -------- |
+| 1         | Jonathan |
+| 2         | Meir     |
+| 3         | Winston  |
+|           | Alice    |
+|           | Bob      |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/iw7iUX6o6RogJ9VSR2sgJ3/1)

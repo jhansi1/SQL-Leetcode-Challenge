@@ -67,3 +67,51 @@ group by parent_id
 having parent_id = any(select sub_id from submissions where parent_id is null)) b
 on a.sub_id = b.parent_id
 order by post_id
+
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Submissions (
+      `sub_id` INTEGER,
+      `parent_id` INTEGER
+    );
+    
+    INSERT INTO Submissions
+      (`sub_id`, `parent_id`)
+    VALUES
+      ('1', Null),
+      ('2', Null),
+      ('1', Null),
+      ('12', Null),
+      ('3', '1'),
+      ('5', '2'),
+      ('3', '1'),
+      ('4', '1'),
+      ('9', '1'),
+      ('10', '2'),
+      ('6', '7');
+
+---
+
+**Query #1**
+
+    With t1 as 
+    (select distinct sub_id as post_id from Submissions where parent_id is null),
+    t2 as
+    (select distinct sub_id, parent_id from Submissions where parent_id is not null)
+    
+    select post_id, sum(case when parent_id is not null then 1 else 0 end) as number_of_comments 
+	from t1 left join  t2 on t1.post_id = t2.parent_id
+    group by post_id
+    order by post_id;
+
+| post_id | number_of_comments |
+| ------- | ------------------ |
+| 1       | 3                  |
+| 2       | 2                  |
+| 12      | 0                  |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/cuvCtZ8nQE4NveBYKPFqmF/2)

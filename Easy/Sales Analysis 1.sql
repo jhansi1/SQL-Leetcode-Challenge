@@ -65,3 +65,43 @@ rank() over(order by sum(price) desc) as rk
 from sales
 group by seller_id) a
 where a.rk=1
+
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Sales (
+      `seller_id` INTEGER,
+      `product_id` INTEGER,
+      `buyer_id` INTEGER,
+      `sale_date` DATETIME,
+      `quantity` INTEGER,
+      `price` INTEGER
+    );
+    
+    INSERT INTO Sales
+      (`seller_id`, `product_id`, `buyer_id`, `sale_date`, `quantity`, `price`)
+    VALUES
+      ('1', '1', '1', '2019-01-21', '2', '2000'),
+      ('1', '2', '2', '2019-02-17', '1', '800'),
+      ('2', '2', '3', '2019-06-02', '1', '800'),
+      ('3', '3', '4', '2019-05-13', '2', '2800');
+
+---
+
+**Query #1**
+
+    select seller_id from (
+    select seller_id, rank() over(order by sum(price) desc) as r
+    from Sales 
+    group by seller_id) s
+    where s.r = 1;
+
+| seller_id |
+| --------- |
+| 1         |
+| 3         |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/rKk8Tb4S4jPjTbdzs2ms6G/1)

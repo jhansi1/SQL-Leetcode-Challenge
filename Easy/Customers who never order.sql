@@ -36,3 +36,48 @@ from Customers
 where id != All(select c.id
                 from Customers c, Orders o
                 where c.id = o.Customerid) 
+				
+-- My solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Customers (
+      `Id` INTEGER,
+      `Name` VARCHAR(5)
+    );
+    
+    INSERT INTO Customers
+      (`Id`, `Name`)
+    VALUES
+      ('1', 'Joe'),
+      ('2', 'Henry'),
+      ('3', 'Sam'),
+      ('4', 'Max');
+    
+    CREATE TABLE Orders (
+      `Id` INTEGER,
+      `CustomerId` INTEGER
+    );
+    
+    INSERT INTO Orders
+      (`Id`, `CustomerId`)
+    VALUES
+      ('1', '3'),
+      ('2', '1');
+
+---
+
+**Query #1**
+
+    select Name 
+    from Customers c left join Orders o
+    on c.Id = o.CustomerId
+    where o.Id is null;
+
+| Name  |
+| ----- |
+| Henry |
+| Max   |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/6CNm5FccNtYiG6dWx6uwK2/1)				

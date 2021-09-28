@@ -47,8 +47,55 @@
 -- +---------------+--------------+ 
 -- Note that we only care about report reasons with non zero number of reports.
 
+
+
 -- Solution
 Select extra as report_reason, count(distinct post_id) as report_count
 from actions
 where action_date = DATE_SUB("2019-07-5", INTERVAL 1 DAY) and action='report'
 group by extra
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Actions (
+      `user_id` INTEGER,
+      `post_id` INTEGER,
+      `action_date` DATETIME,
+      `action` VARCHAR(6),
+      `extra` VARCHAR(6)
+    );
+    
+    INSERT INTO Actions
+      (`user_id`, `post_id`, `action_date`, `action`, `extra`)
+    VALUES
+      ('1', '1', '2019-07-01', 'view', 'null'),
+      ('1', '1', '2019-07-01', 'like', 'null'),
+      ('1', '1', '2019-07-01', 'share', 'null'),
+      ('2', '4', '2019-07-04', 'view', 'null'),
+      ('2', '4', '2019-07-04', 'report', 'spam'),
+      ('3', '4', '2019-07-04', 'view', 'null'),
+      ('3', '4', '2019-07-04', 'report', 'spam'),
+      ('4', '3', '2019-07-02', 'view', 'null'),
+      ('4', '3', '2019-07-02', 'report', 'spam'),
+      ('5', '2', '2019-07-04', 'view', 'null'),
+      ('5', '2', '2019-07-04', 'report', 'racism'),
+      ('5', '5', '2019-07-04', 'view', 'null'),
+      ('5', '5', '2019-07-04', 'report', 'racism');
+
+---
+
+**Query #1**
+
+    select extra as report_reason, count(distinct post_id) as report_count from Actions
+    where action = 'report' and action_date = DATE_SUB('2019-07-05', INTERVAL 1 DAY) 
+    group by extra;
+
+| report_reason | report_count |
+| ------------- | ------------ |
+| racism        | 2            |
+| spam          | 1            |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/k577ANMRtDZ9F2AjkAjZaV/1)
