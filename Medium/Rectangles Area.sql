@@ -45,3 +45,38 @@ select p1.id as p1, p2.id as p2, abs(p1.x_value-p2.x_value)*abs(p1.y_value-p2.y_
 from points p1 cross join points p2
 where p1.x_value!=p2.x_value and p1.y_value!=p2.y_value and p1.id<p2.id
 order by area desc, p1, p2
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Points (
+      `id` INTEGER,
+      `x_value` INTEGER,
+      `y_value` INTEGER
+    );
+    
+    INSERT INTO Points
+      (`id`, `x_value`, `y_value`)
+    VALUES
+      ('1', '2', '8'),
+      ('2', '4', '7'),
+      ('3', '2', '10');
+
+---
+
+**Query #1**
+
+    select p1.id as p1, p2.id as p2, abs(p1.x_value - p2.x_value)* abs(p1.y_value - p2.y_value) as area  
+    from Points p1 cross join Points p2
+    where p1.x_value != p2.x_value and p1.y_value != p2.y_value
+    and p1.id < p2.id
+    order by area desc, p1.id, p2.id;
+
+| p1  | p2  | area |
+| --- | --- | ---- |
+| 2   | 3   | 6    |
+| 1   | 2   | 2    |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/wx9yJWZVstXGbmJWbMRss8/1)

@@ -48,3 +48,40 @@ from(
 select log_id, log_id-row_number() over (order by log_id) as rk
 from logs) a
 group by rk
+
+----
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Logs (
+      `log_id` INTEGER
+    );
+    
+    INSERT INTO Logs
+      (`log_id`)
+    VALUES
+      ('1'),
+      ('2'),
+      ('3'),
+      ('7'),
+      ('8'),
+      ('10');
+
+---
+
+**Query #1**
+
+    select min(log_id) as start_id, max(log_id) as end_id
+    from(
+    select log_id, log_id-row_number() over (order by log_id) as rk
+    from Logs) a
+    group by rk;
+
+| start_id | end_id |
+| -------- | ------ |
+| 1        | 3      |
+| 7        | 8      |
+| 10       | 10     |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/9B7hDfiUJkbAxwUnm9UdfN/2)

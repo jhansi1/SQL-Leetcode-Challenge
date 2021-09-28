@@ -84,3 +84,71 @@ select user1_id
 from friendship
 where user2_id = 1) 
 and page_id != all(select page_id from likes where user_id = 1)
+
+
+-- My Solution
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Friendship (
+      `user1_id` INTEGER,
+      `user2_id` INTEGER
+    );
+    
+    INSERT INTO Friendship
+      (`user1_id`, `user2_id`)
+    VALUES
+      ('1', '2'),
+      ('1', '3'),
+      ('1', '4'),
+      ('2', '3'),
+      ('2', '4'),
+      ('2', '5'),
+      ('6', '1');
+    
+    CREATE TABLE Likes (
+      `user_id` INTEGER,
+      `page_id` INTEGER
+    );
+    
+    INSERT INTO Likes
+      (`user_id`, `page_id`)
+    VALUES
+      ('1', '88'),
+      ('2', '23'),
+      ('3', '24'),
+      ('4', '56'),
+      ('5', '11'),
+      ('6', '33'),
+      ('2', '77'),
+      ('3', '77'),
+      ('6', '88');
+
+---
+
+**Query #1**
+
+    with cte as 
+    (select user1_id, user2_id
+    from Friendship
+    where user1_id = 1
+    union
+    select user2_id, user1_id
+    from Friendship
+    where user2_id = 1)
+    
+    select distinct page_id from Likes 
+    where user_id in (select user2_id from cte)
+    and page_id != all(select distinct page_id from Likes
+    where user_id = 1);
+
+| page_id |
+| ------- |
+| 23      |
+| 24      |
+| 56      |
+| 33      |
+| 77      |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/gK1qkqYas19EUY54vvWSY6/2)

@@ -53,3 +53,45 @@ group by country, month(trans_date))
 select t1.month, t1.country, coalesce(t1.trans_count,0) as trans_count, coalesce(t2.approved_count,0) as approved_count, coalesce(t1.trans_total_amount,0) as trans_total_amount, coalesce(t2.approved_total_amount,0) as approved_total_amount
 from t1 left join t2
 on t1.country = t2.country and t1.month = t2.month
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Transactions (
+      `id` INTEGER,
+      `country` VARCHAR(2),
+      `state` VARCHAR(8),
+      `amount` INTEGER,
+      `trans_date` DATE
+    );
+    
+    INSERT INTO Transactions
+      (`id`, `country`, `state`, `amount`, `trans_date`)
+    VALUES
+      ('121', 'US', 'approved', '1000', '2018-12-18'),
+      ('122', 'US', 'declined', '2000', '2018-12-19'),
+      ('123', 'US', 'approved', '2000', '2019-01-01'),
+      ('124', 'DE', 'approved', '2000', '2019-01-07');
+
+---
+
+**Query #1**
+
+    select distinct month, country, trans_count, trans_total_amount, approved_count, approved_total_amount 
+    from 
+    ( select date_format(trans_date, '%Y-%m') as month, country, 
+	count(*) over(partition by date_format(trans_date, '%Y-%m'), country ) as trans_count, 
+    sum(amount) over(partition by date_format(trans_date, '%Y-%m'), country) as trans_total_amount,
+    sum((case when state='approved' then 1 else 0 end)) over(partition by date_format(trans_date, '%Y-%m'), country) as approved_count,
+    sum((case when state='approved' then amount else 0 end)) over(partition by date_format(trans_date, '%Y-%m'), country) as approved_total_amount
+    from Transactions ) s;
+
+| month   | country | trans_count | trans_total_amount | approved_count | approved_total_amount |
+| ------- | ------- | ----------- | ------------------ | -------------- | --------------------- |
+| 2018-12 | US      | 2           | 3000               | 1              | 1000                  |
+| 2019-01 | DE      | 1           | 2000               | 1              | 2000                  |
+| 2019-01 | US      | 1           | 2000               | 1              | 2000                  |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/mM2xDaVDpjQFEhg73Jf3zZ/1)

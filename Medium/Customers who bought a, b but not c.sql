@@ -81,3 +81,64 @@ on t1.customer_id = c.customer_id
 where t1.customer_id != all(select customer_id
 from orders
 where product_name = 'C')
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Customers (
+      `customer_id` INTEGER,
+      `customer_name` VARCHAR(9)
+    );
+    
+    INSERT INTO Customers
+      (`customer_id`, `customer_name`)
+    VALUES
+      ('1', 'Daniel'),
+      ('2', 'Diana'),
+      ('3', 'Elizabeth'),
+      ('4', 'Jhon');
+    
+    CREATE TABLE Orders (
+      `order_id` INTEGER,
+      `customer_id` INTEGER,
+      `product_name` VARCHAR(1)
+    );
+    
+    INSERT INTO Orders
+      (`order_id`, `customer_id`, `product_name`)
+    VALUES
+      ('10', '1', 'A'),
+      ('11', '3', 'A'),
+      ('20', '1', 'B'),
+      ('30', '1', 'D'),
+      ('40', '1', 'C'),
+      ('50', '2', 'A'),
+      ('60', '3', 'A'),
+      ('70', '3', 'B'),
+      ('80', '3', 'D'),
+      ('90', '4', 'C');
+
+---
+
+**Query #1**
+
+    with cte as
+    (select c.customer_id, 
+			sum(case when o.product_name = 'A' then 1 end) as A, 
+			sum(case when o.product_name = 'B' then 1 end) as B, 
+			sum(case when o.product_name = 'C' then 1 end) as C 
+    from Customers c left join Orders o on c.customer_id = o.customer_id
+    group by c.customer_id)
+    
+    select cte.customer_id, c.customer_name  from cte left join Customers c on cte.customer_id = c.customer_id 
+    where A is not null
+    and B is not null 
+    and C is null;
+
+| customer_id | customer_name |
+| ----------- | ------------- |
+| 3           | Elizabeth     |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/9wZkbMMfUH4vVe59GUsXwG/1)

@@ -66,3 +66,51 @@ where operation = 'Buy'
 group by stock_name) c
 on b.stock_name = c.name)
 order by capital_gain_loss desc
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Stocks (
+      `stock_name` VARCHAR(12),
+      `operation` VARCHAR(4),
+      `operation_day` INTEGER,
+      `price` INTEGER
+    );
+    
+    INSERT INTO Stocks
+      (`stock_name`, `operation`, `operation_day`, `price`)
+    VALUES
+      ('Leetcode', 'Buy', '1', '1000'),
+      ('Corona Masks', 'Buy', '2', '10'),
+      ('Leetcode', 'Sell', '5', '9000'),
+      ('Handbags', 'Buy', '17', '30000'),
+      ('Corona Masks', 'Sell', '3', '1010'),
+      ('Corona Masks', 'Buy', '4', '1000'),
+      ('Corona Masks', 'Sell', '5', '500'),
+      ('Corona Masks', 'Buy', '6', '1000'),
+      ('Handbags', 'Sell', '29', '7000'),
+      ('Corona Masks', 'Sell', '10', '10000');
+
+---
+
+**Query #1**
+
+    with cte as (
+    select stock_name, operation, sum(price) as price
+    from Stocks
+    group by stock_name, operation)
+    
+    select * from (
+    select stock_name, (lead(price) over(partition by stock_name order by operation) - price) as capital_gain_loss 
+    from cte ) s
+    where s.capital_gain_loss is not null ;
+
+| stock_name   | capital_gain_loss |
+| ------------ | ----------------- |
+| Corona Masks | 9500              |
+| Handbags     | -23000            |
+| Leetcode     | 8000              |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/8vsQB8YRMidRWMRBAJLXQz/1)

@@ -31,3 +31,38 @@ cross join point_2d p2
 where p1.x!=p2.x or p1.y!=p2.y
 order by sqrt(pow((p1.x-p2.x),2)+pow((p1.y-p2.y),2))
 limit 1) a
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE points_2d (
+      `x` INTEGER,
+      `y` INTEGER
+    );
+    
+    INSERT INTO points_2d
+      (`x`, `y`)
+    VALUES
+      ('-1', '-1'),
+      ('0', '0'),
+      ('-1', '-2');
+
+---
+
+**Query #1**
+
+    with cte as
+    (select p1.x as x1, p1.y as y1, p2.x as x2, p2.y as y2, round(sqrt(pow((p1.x - p2.x), 2) + pow((p1.y - p2.y), 2)), 2) as distance from points_2d p1 cross join points_2d p2
+    where p1.x!=p2.x or p1.y!=p2.y
+    order by 5)
+    
+    select distance as shortest_distance from cte 
+    limit 1;
+
+| shortest_distance |
+| ----------------- |
+| 1                 |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/dQLTDKaArAS2VoGFbzu8n9/1)

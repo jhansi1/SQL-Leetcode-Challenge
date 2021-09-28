@@ -45,3 +45,38 @@ from
 (select *, count(*) over (partition by TIV_2015) as c1, count(*) over (partition by LAT, LON) as c2
 from insurance ) t
 where c1 > 1 and c2 = 1; 
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Insurance (
+      `PID` INTEGER(11),
+      `TIV_2015` NUMERIC(15, 2),
+      `TIV_2016` NUMERIC(15, 2),
+      `LAT` NUMERIC(5, 2),
+      `LON` NUMERIC(5, 2)
+    );
+    
+    INSERT INTO Insurance
+      (`PID`, `TIV_2015`, `TIV_2016`, `LAT`, `LON`)
+    VALUES
+      ('1', '10', '5', '10', '10'),
+      ('2', '20', '20', '20', '20'),
+      ('3', '10', '30', '20', '20'),
+      ('4', '10', '40', '40', '40');
+
+---
+
+**Query #1**
+
+    select sum(TIV_2016) as TIV_2016 from Insurance
+    where TIV_2015 in (select TIV_2015 from Insurance group by TIV_2015 having count(PID) > 1 )
+    and (lat, lon) in (select lat, lon from Insurance group by lat, lon having count(pid) = 1);
+
+| TIV_2016 |
+| -------- |
+| 45.00    |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/b6yvxSaCRvro6Jndb3B1NP/1)

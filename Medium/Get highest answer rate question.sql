@@ -50,3 +50,46 @@ from
 rank() over(order by rate desc) as rk
 from t1) a
 where a.rk = 1
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE survey_log (
+      `id` INTEGER,
+      `action` VARCHAR(6),
+      `question_id` INTEGER,
+      `answer_id` VARCHAR(6),
+      `q_num` INTEGER,
+      `timestamp` INTEGER
+    );
+    
+    INSERT INTO survey_log
+      (`id`, `action`, `question_id`, `answer_id`, `q_num`, `timestamp`)
+    VALUES
+      ('5', 'show', '285', 'null', '1', '123'),
+      ('5', 'answer', '285', '124124', '1', '124'),
+      ('5', 'show', '369', 'null', '2', '125'),
+      ('5', 'skip', '369', 'null', '2', '126');
+
+---
+
+**Query #1**
+
+    with cte as
+    (select question_id, 
+			sum(case when action='answer' then 1 else 0 end) as num_answer, 
+			sum(case when action='show' then 1 else 0 end) as num_show
+    from survey_log
+    group by question_id)
+    
+    select question_id as survey_log
+    from cte 
+    order by round(num_answer/ num_show) desc limit 1;
+
+| question_id |
+| ----------- |
+| 285         |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/pLa7THG53ZfTYJuF1JmXFX/1)

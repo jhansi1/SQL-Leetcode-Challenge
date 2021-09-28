@@ -75,3 +75,55 @@ inner join accounts a
 on t1.id = a.id
 where datediff(t1.date_5,login_date) = 4
 order by id
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Accounts (
+      `id` INTEGER,
+      `name` VARCHAR(8)
+    );
+    
+    INSERT INTO Accounts
+      (`id`, `name`)
+    VALUES
+      ('1', 'Winston'),
+      ('7', 'Jonathan');
+    
+    CREATE TABLE Logins (
+      `id` INTEGER,
+      `login_date` DATETIME
+    );
+    
+    INSERT INTO Logins
+      (`id`, `login_date`)
+    VALUES
+      ('7', '2020-05-30'),
+      ('1', '2020-05-30'),
+      ('7', '2020-05-31'),
+      ('7', '2020-06-01'),
+      ('7', '2020-06-02'),
+      ('7', '2020-06-02'),
+      ('7', '2020-06-03'),
+      ('1', '2020-06-07'),
+      ('7', '2020-06-10');
+
+---
+
+**Query #1**
+
+    With cte as 
+    (select id, login_date, lead(login_date, 4) over(partition by id order by login_date) as lead_date 
+    from ( select distinct * from Logins ) d)
+    
+    select cte.id, a.name 
+    from cte left join Accounts a on cte.id = a.id
+    where datediff(cte.lead_date, cte.login_date) = 4;
+
+| id  | name     |
+| --- | -------- |
+| 7   | Jonathan |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/6ibFyqXzwhQdpgiZc7Dtmh/1)

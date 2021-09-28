@@ -88,3 +88,63 @@ from t3
 union
 select *
 from t4
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Transactions (
+      `id` INTEGER,
+      `country` VARCHAR(2),
+      `state` VARCHAR(8),
+      `amount` INTEGER,
+      `trans_date` DATE
+    );
+    
+    INSERT INTO Transactions
+      (`id`, `country`, `state`, `amount`, `trans_date`)
+    VALUES
+      ('101', 'US', 'approved', '1000', '2019-05-18'),
+      ('102', 'US', 'declined', '2000', '2019-05-19'),
+      ('103', 'US', 'approved', '3000', '2019-06-10'),
+      ('104', 'US', 'approved', '4000', '2019-06-13'),
+      ('105', 'US', 'approved', '5000', '2019-06-15');
+    
+    CREATE TABLE Chargebacks (
+      `trans_id` INTEGER,
+      `trans_date` DATE
+    );
+    
+    INSERT INTO Chargebacks
+      (`trans_id`, `trans_date`)
+    VALUES
+      ('102', '2019-05-29'),
+      ('101', '2019-06-30'),
+      ('105', '2019-09-18');
+
+---
+
+**Query #1**
+
+    With cte1 as (
+    select DATE_FORMAT(t.trans_date,'%Y-%m') as month, t.country, count(t.state) as approved_count, sum(t.amount) as approved_amount 
+    from Transactions t
+    where state = 'approved'
+    group by 1, 2), 
+    cte2 as
+    (select DATE_FORMAT(c.trans_date,'%Y-%m') as month, t.country, count(c.trans_id) as chargeback_count, sum(t.amount) as chargeback_amount from Chargebacks c left join Transactions t
+    on c.trans_id = t.id
+    group by 1, 2)
+    
+    
+    select cte2.month, cte2.country, coalesce(approved_count, 0) as approved_count, coalesce(approved_amount, 0) as approved_amount, coalesce(chargeback_count, 0) as chargeback_count, coalesce(chargeback_amount, 0) as chargeback_amount
+    from cte2 left join cte1 on cte2.month = cte1.month;
+
+| month   | country | approved_count | approved_amount | chargeback_count | chargeback_amount |
+| ------- | ------- | -------------- | --------------- | ---------------- | ----------------- |
+| 2019-05 | US      | 1              | 1000            | 1                | 2000              |
+| 2019-06 | US      | 3              | 12000           | 1                | 1000              |
+| 2019-09 | US      | 0              | 0               | 1                | 5000              |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/9SrmtNvgXNK45KgJ3sdFEN/1)

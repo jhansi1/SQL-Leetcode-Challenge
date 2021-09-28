@@ -43,3 +43,46 @@ group by accepter_id)) a
 group by requester_id
 order by total desc) b
 limit 1
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE request_accepted (
+      `requester_id` INTEGER,
+      `accepter_id` INTEGER,
+      `accept_date` VARCHAR(10)
+    );
+    
+    INSERT INTO request_accepted
+      (`requester_id`, `accepter_id`, `accept_date`)
+    VALUES
+      ('1', '2', '2016_06-03'),
+      ('1', '3', '2016-06-08'),
+      ('2', '3', '2016-06-08'),
+      ('3', '4', '2016-06-09');
+
+---
+
+**Query #1**
+
+    with cte as
+    (select requester_id as id, sum(cnt) as num from 
+    (select requester_id, count(requester_id) as cnt
+    from request_accepted
+    group by requester_id
+    union all
+    select accepter_id, count(accepter_id)
+    from request_accepted
+    group by accepter_id) d1
+    group by requester_id )
+    
+    select * from cte
+    where num = (select max(num) from cte);
+
+| id  | num |
+| --- | --- |
+| 3   | 3   |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/enXfjMUZaAASNDW8Y6bhS2/1)

@@ -55,3 +55,48 @@ select customer_id
 from customer
 group by customer_id
 having count(distinct product_key) = (select COUNT(distinct product_key) from product)
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Customer (
+      `customer_id` INTEGER,
+      `product_key` INTEGER
+    );
+    
+    INSERT INTO Customer
+      (`customer_id`, `product_key`)
+    VALUES
+      ('1', '5'),
+      ('2', '6'),
+      ('3', '5'),
+      ('3', '6'),
+      ('1', '6');
+    
+    CREATE TABLE Product (
+      `product_key` INTEGER
+    );
+    
+    INSERT INTO Product
+      (`product_key`)
+    VALUES
+      ('5'),
+      ('6');
+
+---
+
+**Query #1**
+
+    select customer_id
+    from Customer
+    group by customer_id
+    having count(distinct product_key) = (select count(distinct product_key) from Product);
+
+| customer_id |
+| ----------- |
+| 1           |
+| 3           |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/apHsH5WuyYVWffkWF9YCk/1)

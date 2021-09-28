@@ -60,3 +60,47 @@ join
 from sales
 where fruit = 'oranges') b
 on a.sale_date = b.sale) 
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Sales (
+      `sale_date` DATETIME,
+      `fruit` VARCHAR(7),
+      `sold_num` INTEGER
+    );
+    
+    INSERT INTO Sales
+      (`sale_date`, `fruit`, `sold_num`)
+    VALUES
+      ('2020-05-01', 'apples', '10'),
+      ('2020-05-01', 'oranges', '8'),
+      ('2020-05-02', 'apples', '15'),
+      ('2020-05-02', 'oranges', '15'),
+      ('2020-05-03', 'apples', '20'),
+      ('2020-05-03', 'oranges', '0'),
+      ('2020-05-04', 'apples', '15'),
+      ('2020-05-04', 'oranges', '16');
+
+---
+
+**Query #1**
+
+    with cte as (
+    select sale_date, sold_num - lead(sold_num) over(partition by sale_date order by sale_date) as diff
+    from Sales )
+    
+    
+    select * from cte 
+    where diff is not null;
+
+| sale_date           | diff |
+| ------------------- | ---- |
+| 2020-05-01 00:00:00 | 2    |
+| 2020-05-02 00:00:00 | 0    |
+| 2020-05-03 00:00:00 | 20   |
+| 2020-05-04 00:00:00 | -1   |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/kAcURAmMWtQWMB4dctdbMH/1)

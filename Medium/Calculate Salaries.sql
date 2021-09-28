@@ -72,3 +72,58 @@ when t1.maximum between 1000 and 10000 then round(t1.sa*.76,0)
 else round(t1.sa*.51,0)
 end as salary
 from t1
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Salaries (
+      `company_id` INTEGER,
+      `employee_id` INTEGER,
+      `employee_name` VARCHAR(11),
+      `salary` INTEGER
+    );
+    
+    INSERT INTO Salaries
+      (`company_id`, `employee_id`, `employee_name`, `salary`)
+    VALUES
+      ('1', '1', 'Tony', '2000'),
+      ('1', '2', 'Pronub', '21300'),
+      ('1', '3', 'Tyrrox', '10800'),
+      ('2', '1', 'Pam', '300'),
+      ('2', '7', 'Bassem', '450'),
+      ('2', '9', 'Hermione', '700'),
+      ('3', '7', 'Bocaben', '100'),
+      ('3', '2', 'Ognjen', '2200'),
+      ('3', '13', 'Nyancat', '3300'),
+      ('3', '15', 'Morninngcat', '1866');
+
+---
+
+**Query #1**
+
+    with cte as 
+    (select company_id, max(salary) as max_sal from Salaries 
+    group by company_id)
+    
+    select s.company_id, s.employee_id, s.employee_name, round((case when cte.max_sal < 1000 then s.salary  
+              		when cte.max_sal between 1000 and 10000 then s.salary - (24/100) * s.salary 
+              		when cte.max_sal > 10000 then s.salary - (49/100) * s.salary end)) as salary
+    from Salaries s left join cte
+    on s.company_id = cte.company_id;
+
+| company_id | employee_id | employee_name | salary |
+| ---------- | ----------- | ------------- | ------ |
+| 1          | 1           | Tony          | 1020   |
+| 1          | 2           | Pronub        | 10863  |
+| 1          | 3           | Tyrrox        | 5508   |
+| 2          | 1           | Pam           | 300    |
+| 2          | 7           | Bassem        | 450    |
+| 2          | 9           | Hermione      | 700    |
+| 3          | 7           | Bocaben       | 76     |
+| 3          | 2           | Ognjen        | 1672   |
+| 3          | 13          | Nyancat       | 2508   |
+| 3          | 15          | Morninngcat   | 1418   |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/gdYTR3RBd5P92nxtzygseW/1)

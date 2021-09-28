@@ -56,3 +56,52 @@ left join student s
 on d.dept_id = s.dept_id
 group by d.dept_id
 order by count(s.dept_id) desc, dept_name
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE student (
+      `student_id` INTEGER,
+      `student_name` VARCHAR(4),
+      `gender` VARCHAR(1),
+      `dept_id` INTEGER
+    );
+    
+    INSERT INTO student
+      (`student_id`, `student_name`, `gender`, `dept_id`)
+    VALUES
+      ('1', 'Jack', 'M', '1'),
+      ('2', 'Jane', 'F', '1'),
+      ('3', 'Mark', 'M', '2');
+    
+    CREATE TABLE department (
+      `dept_id` INTEGER,
+      `dept_name` VARCHAR(11)
+    );
+    
+    INSERT INTO department
+      (`dept_id`, `dept_name`)
+    VALUES
+      ('1', 'Engineering'),
+      ('2', 'Science'),
+      ('3', 'Law');
+
+---
+
+**Query #1**
+
+    select d.dept_name, sum(case when s.dept_id is not null then 1 else 0 end) as num_of_students 
+	from department d left join student s
+    on d.dept_id = s.dept_id
+    group by d.dept_name
+    order by 2 desc, 1;
+
+| dept_name   | num_of_students |
+| ----------- | --------------- |
+| Engineering | 2               |
+| Science     | 1               |
+| Law         | 0               |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/7BHhHvqmK3ZZMPzbumoCvv/2)

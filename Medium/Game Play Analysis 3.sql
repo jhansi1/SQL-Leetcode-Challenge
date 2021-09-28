@@ -48,3 +48,41 @@ select player_id, event_date,
 sum(games_played) over(partition by player_id order by event_date) as games_played_so_far
 from activity
 order by 1,2
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Activity (
+      `player_id` INTEGER,
+      `device_id` INTEGER,
+      `event_date` DATETIME,
+      `games_played` INTEGER
+    );
+    
+    INSERT INTO Activity
+      (`player_id`, `device_id`, `event_date`, `games_played`)
+    VALUES
+      ('1', '2', '2016-03-01', '5'),
+      ('1', '2', '2016-05-02', '6'),
+      ('1', '3', '2017-06-25', '1'),
+      ('3', '1', '2016-03-02', '0'),
+      ('3', '4', '2018-07-03', '5');
+
+---
+
+**Query #1**
+
+    select player_id,event_date, sum(games_played) over(partition by player_id order by event_date) as events_played_so_far
+    from Activity;
+
+| player_id | event_date          | events_played_so_far |
+| --------- | ------------------- | -------------------- |
+| 1         | 2016-03-01 00:00:00 | 5                    |
+| 1         | 2016-05-02 00:00:00 | 11                   |
+| 1         | 2017-06-25 00:00:00 | 12                   |
+| 3         | 2016-03-02 00:00:00 | 0                    |
+| 3         | 2018-07-03 00:00:00 | 5                    |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/xwuJmjVYWqUNJSkUXkpX8a/2)

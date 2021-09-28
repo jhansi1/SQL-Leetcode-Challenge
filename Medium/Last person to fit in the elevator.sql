@@ -54,3 +54,41 @@ select t1.person_name
 from t1
 where turn = (select max(turn) from t1 where t1.cum_weight<=1000)
 
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE queue (
+      `person_id` INTEGER,
+      `person_name` VARCHAR(17),
+      `weight` INTEGER,
+      `turn` INTEGER
+    );
+    
+    INSERT INTO queue
+      (`person_id`, `person_name`, `weight`, `turn`)
+    VALUES
+      ('5', 'George Washington', '250', '1'),
+      ('3', 'John Adams', '350', '2'),
+      ('6', 'Thomas', '350', '3'),
+      ('6', 'Thomas Jefferson', '400', '4'),
+      ('2', 'Will Johnliams', '200', '4'),
+      ('4', 'Thomas Jefferson', '175', '6'),
+      ('1', 'James Elephant', '500', '7');
+
+---
+
+**Query #1**
+
+    select person_name, turn from 
+    (select * , sum(weight) over(order by turn) as cumm_weight from queue) s
+    where cumm_weight <= 1000
+    order by turn desc
+    limit 1;
+
+| person_name | turn |
+| ----------- | ---- |
+| Thomas      | 3    |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/5PsjLpXPRbHCZi2RwwaDEU/2)

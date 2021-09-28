@@ -70,3 +70,50 @@ from employees
 where manager_id = any (select employee_id
 from employees
 where manager_id = 1 and employee_id != 1))
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Employees (
+      `employee_id` INTEGER,
+      `employee_name` VARCHAR(6),
+      `manager_id` INTEGER
+    );
+    
+    INSERT INTO Employees
+      (`employee_id`, `employee_name`, `manager_id`)
+    VALUES
+      ('1', 'Boss', '1'),
+      ('3', 'Alice', '3'),
+      ('2', 'Bob', '1'),
+      ('4', 'Daniel', '2'),
+      ('7', 'Luis', '4'),
+      ('8', 'Jhon', '3'),
+      ('9', 'Angela', '8'),
+      ('77', 'Robert', '1');
+
+---
+
+**Query #1**
+
+    with cte as 
+    (	
+      	select employee_id from Employees where manager_id in (
+          select employee_id from Employees where manager_id in (
+          select employee_id from Employees where manager_id = 1 )
+        )
+    )
+    
+    select distinct * from cte
+    where employee_id != 1;
+
+| employee_id |
+| ----------- |
+| 2           |
+| 4           |
+| 7           |
+| 77          |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/fFWPuXXsQE4AnByAjuJXGb/1)

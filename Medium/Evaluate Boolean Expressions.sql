@@ -81,3 +81,63 @@ when t1.operator = '=' then (select t1.left_val = t1.right_val)
 else FALSE
 END AS VALUE
 from t1
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Variables (
+      `name` VARCHAR(1),
+      `value` INTEGER
+    );
+    
+    INSERT INTO Variables
+      (`name`, `value`)
+    VALUES
+      ('x', '66'),
+      ('y', '77');
+    
+    
+    
+    CREATE TABLE Expressions (
+      `left_operand` VARCHAR(1),
+      `operator` VARCHAR(1),
+      `right_operand` VARCHAR(1)
+    );
+    
+    INSERT INTO Expressions
+      (`left_operand`, `operator`, `right_operand`)
+    VALUES
+      ('x', '>', 'y'),
+      ('x', '<', 'y'),
+      ('x', '=', 'y'),
+      ('y', '>', 'x'),
+      ('y', '<', 'x'),
+      ('x', '=', 'x');
+
+---
+
+**Query #1**
+
+    with cte as 
+    (select v1.value as left_op_value, e.operator, v2.value as right_op_value 
+    from (Expressions e
+    left join Variables v1 on v1.name = e.left_operand) 
+    left join Variables v2 on v2.name = e.right_operand )
+    
+    select *, (case when operator = '=' then if(left_op_value = right_op_value, 'true', 'false')
+               when operator = '>' then if(left_op_value > right_op_value, 'true', 'false')
+               when operator = '<' then if(left_op_value < right_op_value, 'true', 'false')
+               else 0 end ) as value  from cte;
+
+| left_op_value | operator | right_op_value | value |
+| ------------- | -------- | -------------- | ----- |
+| 66            | =        | 66             | true  |
+| 77            | >        | 66             | true  |
+| 77            | <        | 66             | false |
+| 66            | >        | 77             | false |
+| 66            | <        | 77             | true  |
+| 66            | =        | 77             | false |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/a9uUVPdTwbEH5NFDhJkft9/2)

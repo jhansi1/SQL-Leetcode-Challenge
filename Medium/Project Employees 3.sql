@@ -69,3 +69,55 @@ on p.employee_id = e.employee_id)
 select t1.project_id, t1.employee_id
 from t1
 where t1.rk = 1
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Project (
+      `project_id` INTEGER,
+      `employee_id` INTEGER
+    );
+    
+    INSERT INTO Project
+      (`project_id`, `employee_id`)
+    VALUES
+      ('1', '1'),
+      ('1', '2'),
+      ('1', '3'),
+      ('2', '1'),
+      ('2', '4');
+    
+    CREATE TABLE Employee (
+      `employee_id` INTEGER,
+      `name` VARCHAR(6),
+      `experience_years` INTEGER
+    );
+    
+    INSERT INTO Employee
+      (`employee_id`, `name`, `experience_years`)
+    VALUES
+      ('1', 'Khaled', '3'),
+      ('2', 'Ali', '2'),
+      ('3', 'John', '3'),
+      ('4', 'Doe', '2');
+
+---
+
+**Query #1**
+
+    with cte as (select project_id, e.employee_id, e.name,
+    e.experience_years from Project p left join Employee e on p.employee_id = e.employee_id)
+    
+    select project_id, employee_id from 
+    (select *, rank() over(partition by project_id order by experience_years desc) as r from cte) d
+    where r = 1;
+
+| project_id | employee_id |
+| ---------- | ----------- |
+| 1          | 1           |
+| 1          | 3           |
+| 2          | 1           |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/d7ZxEw8Hz24JQD51HDqCpi/1)

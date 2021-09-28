@@ -80,3 +80,63 @@ group by a.action_date)
 
 select round(avg(t1.result)*100,2) as  average_daily_percent
 from t1
+
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Actions (
+      `user_id` INTEGER,
+      `post_id` INTEGER,
+      `action_date` DATE,
+      `action` VARCHAR(6),
+      `extra` VARCHAR(6)
+    );
+    
+    INSERT INTO Actions
+      (`user_id`, `post_id`, `action_date`, `action`, `extra`)
+    VALUES
+      ('1', '1', '2019-07-01', 'view', 'null'),
+      ('1', '1', '2019-07-01', 'like', 'null'),
+      ('1', '1', '2019-07-01', 'share', 'null'),
+      ('2', '2', '2019-07-04', 'view', 'null'),
+      ('2', '2', '2019-07-04', 'report', 'spam'),
+      ('3', '4', '2019-07-04', 'view', 'null'),
+      ('3', '4', '2019-07-04', 'report', 'spam'),
+      ('4', '3', '2019-07-02', 'view', 'null'),
+      ('4', '3', '2019-07-02', 'report', 'spam'),
+      ('5', '2', '2019-07-03', 'view', 'null'),
+      ('5', '2', '2019-07-03', 'report', 'racism'),
+      ('5', '5', '2019-07-03', 'view', 'null'),
+      ('5', '5', '2019-07-03', 'report', 'racism');
+    
+    CREATE TABLE Removals (
+      `post_id` INTEGER,
+      `remove_date` DATE
+    );
+    
+    INSERT INTO Removals
+      (`post_id`, `remove_date`)
+    VALUES
+      ('2', '2019-07-20'),
+      ('3', '2019-07-18');
+
+---
+
+**Query #1**
+
+    with cte as 
+    (select action_date, avg(case when remove_date then 1 else 0 end) as daily_percent 
+    from Actions a left join Removals r on a.post_id = r.post_id
+    where action = 'report' and extra = 'spam'
+    group by action_date) 
+    
+    select round(avg(daily_percent)*100, 2) as average_daily_percent from cte;
+
+| average_daily_percent |
+| --------------------- |
+| 75.00                 |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/4Yah3GnXQ4FDAKCAeqj3uM/0)

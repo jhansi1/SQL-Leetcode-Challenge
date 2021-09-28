@@ -70,3 +70,51 @@ from
 	order by visited_on
 ) a
 order by visited_on offset 6 rows
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Customer (
+      `customer_id` INTEGER,
+      `name` VARCHAR(7),
+      `visited_on` DATE,
+      `amount` INTEGER
+    );
+    
+    INSERT INTO Customer
+      (`customer_id`, `name`, `visited_on`, `amount`)
+    VALUES
+      ('1', 'Jhon', '2019-01-01', '100'),
+      ('2', 'Daniel', '2019-01-02', '110'),
+      ('3', 'Jade', '2019-01-03', '120'),
+      ('4', 'Khaled', '2019-01-04', '130'),
+      ('5', 'Winston', '2019-01-05', '110'),
+      ('6', 'Elvis', '2019-01-06', '140'),
+      ('7', 'Anna', '2019-01-07', '150'),
+      ('8', 'Maria', '2019-01-08', '80'),
+      ('9', 'Jaze', '2019-01-09', '110'),
+      ('1', 'Jhon', '2019-01-10', '130'),
+      ('3', 'Jade', '2019-01-10', '150');
+
+---
+
+**Query #1**
+
+    with cte as 
+    (select *, round(avg(amount) over (order by visited_on rows 6 preceding), 2) as average_amount, rank() over(order by visited_on) as r from
+    (select visited_on, sum(amount) as amount from Customer
+    group by visited_on
+    order by visited_on) d)
+    
+    select visited_on, amount, average_amount from cte where r > 6 ;
+
+| visited_on | amount | average_amount |
+| ---------- | ------ | -------------- |
+| 2019-01-07 | 150    | 122.86         |
+| 2019-01-08 | 80     | 120.00         |
+| 2019-01-09 | 110    | 120.00         |
+| 2019-01-10 | 280    | 142.86         |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/vEir8XeMAb9fcr6oNumwno/1)

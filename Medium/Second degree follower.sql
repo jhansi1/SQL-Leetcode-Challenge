@@ -34,3 +34,36 @@ from follow
 where followee = any(select follower from follow)
 group by followee
 order by followee
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE follow (
+      `followee` VARCHAR(1),
+      `follower` VARCHAR(1)
+    );
+    
+    INSERT INTO follow
+      (`followee`, `follower`)
+    VALUES
+      ('A', 'B'),
+      ('B', 'C'),
+      ('B', 'D'),
+      ('D', 'E');
+
+---
+
+**Query #1**
+
+    select followee as follower, count(distinct follower) as num from follow 
+    where followee in (select follower from follow)
+    group by followee;
+
+| followee | num |
+| -------- | --- |
+| B        | 2   |
+| D        | 1   |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/fpVzFBpDp95DZ7xnkftips/1)

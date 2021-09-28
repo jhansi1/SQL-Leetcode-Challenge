@@ -33,3 +33,40 @@
 select Score,
 dense_rank() over(order by score desc) as "Rank"
 from scores
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE scores (
+      `Id` INTEGER,
+      `Score` FLOAT
+    );
+    
+    INSERT INTO scores
+      (`Id`, `Score`)
+    VALUES
+      ('1', '3.50'),
+      ('2', '3.65'),
+      ('3', '4.00'),
+      ('4', '3.85'),
+      ('5', '4.00'),
+      ('6', '3.65');
+
+---
+
+**Query #1**
+
+    select Score, dense_rank() over(order by Score desc) as 'Rank' from scores;
+
+| Score | Rank |
+| ----- | ---- |
+| 4     | 1    |
+| 4     | 1    |
+| 3.85  | 2    |
+| 3.65  | 3    |
+| 3.65  | 3    |
+| 3.5   | 4    |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/nXUPFgJ2tREitd2K7udbz4/1)

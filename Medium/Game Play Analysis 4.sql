@@ -52,3 +52,42 @@ With t as
 
 select round(sum(t.s)/count(distinct t.player_id),2) as fraction 
 from t
+
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Activity (
+      `player_id` INTEGER,
+      `device_id` INTEGER,
+      `event_date` DATETIME,
+      `games_played` INTEGER
+    );
+    
+    INSERT INTO Activity
+      (`player_id`, `device_id`, `event_date`, `games_played`)
+    VALUES
+      ('1', '2', '2016-03-01', '5'),
+      ('1', '2', '2016-03-02', '6'),
+      ('2', '3', '2017-06-25', '1'),
+      ('3', '1', '2016-03-02', '0'),
+      ('3', '4', '2018-07-03', '5');
+
+---
+
+**Query #1**
+
+    with cte as 
+    (select player_id, (case when datediff(event_date, start_date) = 1 then 1 else 0 end) as diff from 
+    (select player_id, event_date, min(event_date) over(partition by player_id) as start_date
+    from Activity) d)
+    
+    select round((select count(cte.player_id) from cte where diff = 1)/ (select count (distinct player_id) from Activity), 2) as fraction from dual;
+
+| fraction |
+| -------- |
+| 0.33     |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/ijykx21RnhczQwsH7e6nEq/2)

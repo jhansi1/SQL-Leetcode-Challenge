@@ -46,3 +46,44 @@ from views
 group by viewer_id, view_date
 having count(distinct article_id)>1
 order by 1
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Views (
+      `article_id` INTEGER,
+      `author_id` INTEGER,
+      `viewer_id` INTEGER,
+      `view_date` DATETIME
+    );
+    
+    INSERT INTO Views
+      (`article_id`, `author_id`, `viewer_id`, `view_date`)
+    VALUES
+      ('1', '3', '5', '2019-08-01'),
+      ('3', '4', '5', '2019-08-01'),
+      ('1', '3', '6', '2019-08-02'),
+      ('2', '7', '7', '2019-08-01'),
+      ('2', '7', '6', '2019-08-02'),
+      ('4', '7', '1', '2019-07-22'),
+      ('3', '4', '4', '2019-07-21'),
+      ('3', '4', '4', '2019-07-21');
+
+---
+
+**Query #1**
+
+    select viewer_id
+    from Views
+    group by viewer_id, view_date
+    having count(distinct article_id) > 1
+    order by 1;
+
+| viewer_id |
+| --------- |
+| 5         |
+| 6         |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/5rD5RTwUAwrVMJZu8fADFX/1)

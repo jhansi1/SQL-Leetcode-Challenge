@@ -126,3 +126,68 @@ from t1
 group by host_id, host_name) e
 on t2.team_id = e.host_id
 order by num_points desc, team_id
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE Teams (
+      `team_id` INTEGER,
+      `team_name` VARCHAR(11)
+    );
+    
+    INSERT INTO Teams
+      (`team_id`, `team_name`)
+    VALUES
+      ('10', 'Leetcode FC'),
+      ('20', 'NewYork FC'),
+      ('30', 'Atlanta FC'),
+      ('40', 'Chicago FC'),
+      ('50', 'Toronto FC');
+    
+    CREATE TABLE Matches (
+      `match_id` INTEGER,
+      `host_team` INTEGER,
+      `guest_team` INTEGER,
+      `host_goals` INTEGER,
+      `guest_goals` INTEGER
+    );
+    
+    INSERT INTO Matches
+      (`match_id`, `host_team`, `guest_team`, `host_goals`, `guest_goals`)
+    VALUES
+      ('1', '10', '20', '3', '0'),
+      ('2', '30', '10', '2', '2'),
+      ('3', '10', '50', '5', '1'),
+      ('4', '20', '30', '1', '0'),
+      ('5', '50', '30', '1', '0');
+
+---
+
+**Query #1**
+
+    with cte as
+    (select match_id, host_team, host_goals, guest_team, guest_goals
+    from Matches
+    union 
+    select match_id, guest_team, guest_goals, host_team, host_goals
+    from Matches)
+    
+    select team_id, team_name, sum(case when host_goals > guest_goals then 3 
+                                when host_goals = guest_goals then 1
+                                else 0
+                                end) as num_points
+    from Teams t left join cte on t.team_id = cte.host_team
+    group by team_id, team_name
+    order by num_points desc, team_id;
+
+| team_id | team_name   | num_points |
+| ------- | ----------- | ---------- |
+| 10      | Leetcode FC | 7          |
+| 20      | NewYork FC  | 3          |
+| 50      | Toronto FC  | 3          |
+| 30      | Atlanta FC  | 1          |
+| 40      | Chicago FC  | 0          |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/wpNkE3MXUAzV18CsQ4bRAn/1)

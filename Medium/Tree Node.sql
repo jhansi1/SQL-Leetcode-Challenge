@@ -58,3 +58,41 @@ else 'Inner'
 end as Type
 from tree
 order by id
+
+-- My Solution:
+**Schema (MySQL v8.0)**
+
+    CREATE TABLE tree (
+      `id` INTEGER,
+      `p_id` VARCHAR(4)
+    );
+    
+    INSERT INTO tree
+      (`id`, `p_id`)
+    VALUES
+      ('1', null),
+      ('2', '1'),
+      ('3', '1'),
+      ('4', '2'),
+      ('5', '2');
+
+---
+
+**Query #1**
+
+    select id, (case when p_id is null then "root" 
+              when id not in (select coalesce(p_id, 0) from tree) then "leaf"
+              else "inner" end) as Type
+    from tree;
+
+| id  | Type  |
+| --- | ----- |
+| 1   | root  |
+| 2   | inner |
+| 3   | leaf  |
+| 4   | leaf  |
+| 5   | leaf  |
+
+---
+
+[View on DB Fiddle](https://www.db-fiddle.com/f/iQqKRLpJiueBweejePdDxz/3)
